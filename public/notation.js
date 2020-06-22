@@ -6,6 +6,8 @@ var SECPERFRAME = 1.0 / FRAMERATE;
 var PXPERSEC = 150.0;
 var PXPERMS = PXPERSEC / 1000.0;
 var PXPERFRAME = PXPERSEC / FRAMERATE;
+// COLORS ------------------------ >
+var clr_seaGreen = new THREE.Color("rgb(0, 255, 108)");
 // SVG --------------------------- >
 var SVG_NS = "http://www.w3.org/2000/svg";
 var SVG_XLINK = 'http://www.w3.org/1999/xlink';
@@ -16,18 +18,19 @@ var lastFrameTimeMs = 0.0;
 // THREEJS SCENE ------------------ >
 var camera, scene, renderer, canvas;
 //// Camera Position Settings ///
-var CAM_Y = -180;
-var CAM_Z = 100;
+var CAM_Z = 130;
+var CAM_Y = -195;
+// var CAM_Z = 0;
+// var CAM_Y = -100;
 var CAM_ROTATION_X = rads(0);
-var RUNWAY_ROTATION_X = -29
+var RUNWAY_ROTATION_X = -25
 //// Scene Size /////////////////
-var SCENE_W = 260;
-var SCENE_H = 450;
-var RUNWAYLENGTH = 1000;
+var SCENE_W = 250;
+var SCENE_H = 600;
+var RUNWAYLENGTH = 600;
 var RUNWAYLENGTH_FRAMES = RUNWAYLENGTH / PXPERFRAME;
-
-var TRACK_DIAMETER = 15;
-var TRACK_Y_OFFSET = 10;
+var TRACK_DIAMETER = 5;
+var TRACK_Y_OFFSET = 3;
 // </editor-fold> *********************************************** //
 // <editor-fold ******** START UP SEQUENCE ********************** //
 // 01 START TIME SYNC ENGINE ----- >
@@ -68,30 +71,68 @@ function create3jsScene(canvasDivId, w, h, length) {
   canvas = document.getElementById(canvasDivId);
   canvas.appendChild(renderer.domElement);
   // RUNWAY ////////////////////////////////////////////////////////////////////
+  var t_runwayW = w * 0.67;
+  var conveyor = new THREE.Group();
   var runwayMatl =
     new THREE.MeshLambertMaterial({
       color: 0x0040C0
     });
   var runwayGeom = new THREE.PlaneGeometry(
-    w,
+    t_runwayW,
     length,
   );
   var runway = new THREE.Mesh(runwayGeom, runwayMatl);
   runway.position.z = -length / 2;
-  runway.rotation.x = rads(RUNWAY_ROTATION_X);
-  scene.add(runway);
-  // TRACKS ////////////////////////////////////////////////////////////////////
+  conveyor.add(runway);
+  // TRACK ////////////////////////////////////////////////////////////////////
   var trgeom = new THREE.CylinderGeometry(TRACK_DIAMETER, TRACK_DIAMETER, length, 32);
   var trmatl = new THREE.MeshLambertMaterial({
     color: 0x708090
   });
   var tTr = new THREE.Mesh(trgeom, trmatl);
-  tTr.rotation.x = rads(-90);
   tTr.position.z = -(length / 2);
   tTr.position.y = (-TRACK_DIAMETER / 2) + TRACK_Y_OFFSET;
   tTr.position.x = 0;
-  tTr.rotation.x = rads(RUNWAY_ROTATION_X);
-  scene.add(tTr);
+  conveyor.add(tTr);
+  // FRETS ///////////////////////////////////////////////////////////////
+  var fretGeom = new THREE.CylinderGeometry(2, 2, t_runwayW, 32);
+  var fretMatl = new THREE.MeshLambertMaterial({
+    color: clr_seaGreen
+  });
+  var t_numFrets = 20;
+  var t_fretGap = RUNWAYLENGTH / t_numFrets;
+  for (var i = 1; i < 30; i++) {
+    var t_fret = new THREE.Mesh(fretGeom, fretMatl);
+    t_fret.rotation.z = rads(-90);
+    t_fret.position.z = -(length / 2);
+    t_fret.position.y = (RUNWAYLENGTH / 2) - (t_fretGap * i);
+    conveyor.add(t_fret);
+  }
+
+  var fingGeom = new THREE.SphereGeometry(9, 32, 32);
+  var fingMatl = new THREE.MeshBasicMaterial({
+    color: 0xffff00
+  });
+  var fing = new THREE.Mesh(fingGeom, fingMatl);
+  fing.position.z = -(length / 2);
+  fing.position.y = (RUNWAYLENGTH / 2);
+  var followFretMatl = new THREE.MeshLambertMaterial({
+    color: 0xffff00
+  });
+  var t_ffret = new THREE.Mesh(fretGeom, followFretMatl);
+  t_ffret.rotation.z = rads(-90);
+  t_ffret.position.z = -(length / 2);
+  t_ffret.position.y = (RUNWAYLENGTH / 2);
+  // MOVE FINGER ///////////////////////////////////////////////////////////////
+  t_ffret.position.y = (RUNWAYLENGTH / 2) - 100;
+  fing.position.y = (RUNWAYLENGTH / 2) - 100;
+  //ADD growing yelow track a little bigger than track
+  conveyor.add(t_ffret);
+  conveyor.add(fing);
+  // ROTATE GROUP ///////////////////////////////////////////////////////////////
+  conveyor.rotation.x = rads(RUNWAY_ROTATION_X);
+  scene.add(conveyor);
+  // RENDER ///////////////////////////////////////////////////////////////
   renderer.render(scene, camera);
 }
 // MAKE SVG CANVAS ----------------------------------
@@ -104,6 +145,7 @@ function mkSVGcanvas(ix, w, h) {
   tsvgCanvas.style.backgroundColor = "black";
   return tsvgCanvas;
 }
+
 function mkCanvasDiv(ix, w, h, clr) {
   var t_div = document.createElement("div");
   t_div.style.width = w.toString() + "px";
