@@ -210,7 +210,7 @@ function update(aMSPERFRAME, currTimeMS) {
 // DRAW -------------------------------------------
 function draw() {
   // RENDER ///////////////////////////////////////////////////////////////
-  renderer.render(scene, camera);
+  // renderer.render(scene, camera);
 }
 // ANIMATION ENGINE ---------------------------------
 function animationEngine(timestamp) {
