@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "ejs": "^2.5.6",
-    "express": "^4.15.2",
+    "express": "^4.17.3",
     "socketio": "^1.0.0",
     "timesync": "^1.0.5"
   },
